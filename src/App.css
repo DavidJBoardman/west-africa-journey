@@ -597,26 +597,50 @@
   to { transform: scale(1); opacity: 1; }
 }
 
+/*
+  The frame owns its own size rather than inheriting it from whichever image
+  happens to be in flow. Every photocard derivative is 1800x1200, so the frame
+  is a 3:2 box as tall as the viewport allows: 72vh high, hence 72 * 3/2 = 108vh
+  wide, capped at 80vw on narrow screens.
+
+  Sizing it here — not from an image — is what keeps the two stacked images in
+  register. Previously the frame was sized by the 400px thumbnail while the
+  1800px version, being absolutely positioned, took its own intrinsic size
+  (auto width on a replaced element resolves to the intrinsic width, not to the
+  containing block) and was clipped to a 17% crop of itself.
+
+  Anything that is not 3:2 still shows whole, letterboxed inside the frame,
+  because both images are object-fit: contain.
+*/
 .lightbox-img-wrapper {
   position: relative;
   overflow: hidden;
   border: 1px solid var(--border-light);
+  width: min(80vw, calc(72vh * 3 / 2));
+  aspect-ratio: 3 / 2;
 }
 
+/* Both images fill the frame exactly and letterbox inside it. */
 .lightbox-img-wrapper img {
+  position: absolute;
+  inset: 0;
   display: block;
-  max-width: 80vw;
-  max-height: 72vh;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   filter: sepia(0.1);
 }
 
-/* The cached thumbnail holds the frame (and its size) while the 1800px version
-   arrives, then fades out from underneath it. */
+/* The cached thumbnail paints immediately, giving the large version something
+   to resolve out of instead of an empty black frame. */
 .lightbox-placeholder {
   filter: sepia(0.1) blur(8px);
-  transform: scale(1.02);
+  transform: scale(1.03);
   transition: opacity 0.25s ease;
+}
+
+[data-theme="light"] .lightbox-placeholder {
+  filter: sepia(0.05) blur(8px);
 }
 
 .lightbox-placeholder[data-hidden="true"] {
@@ -624,9 +648,6 @@
 }
 
 .lightbox-full {
-  position: absolute;
-  inset: 0;
-  margin: auto;
   opacity: 0;
   transition: opacity 0.25s ease;
 }
