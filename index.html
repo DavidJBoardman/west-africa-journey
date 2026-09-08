@@ -4,7 +4,25 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>uac-journey-demo</title>
+    <meta name="description" content="An interactive map of Jack Barker's 1958 photographic journey through West Africa, from the Unilever Archives Collection." />
+    <title>A Journey Through West Africa · Unilever Archives</title>
+
+    <!--
+      Fonts moved out of an @import in index.css. A CSS @import is discovered
+      only after the stylesheet itself has downloaded and parsed, so the font
+      request was serialised behind it and blocked first paint twice over. As a
+      <link> in the head it is discovered in the initial HTML scan.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500&family=Courier+Prime&display=swap"
+    />
+
+    <!-- Open the TLS connections for the basemap tiles before the map asks for them. -->
+    <link rel="preconnect" href="https://a.basemaps.cartocdn.com" crossorigin />
+    <link rel="preconnect" href="https://b.basemaps.cartocdn.com" crossorigin />
   </head>
   <body>
     <div id="root"></div>

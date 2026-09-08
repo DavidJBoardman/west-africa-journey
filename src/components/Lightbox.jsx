@@ -1,22 +1,40 @@
 import { useState } from 'react';
+import { displayUrl, thumbUrl } from '../lib/photos';
 
 export default function Lightbox({ photo, onClose }) {
   const [errored, setErrored] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   return (
     <div className="lightbox" onClick={onClose}>
       <div className="lightbox-inner" onClick={e => e.stopPropagation()}>
         <div className="lightbox-img-wrapper">
           {errored ? (
-            <div style={{ padding: '40px 60px', color: 'var(--text-muted)', fontFamily: 'Courier Prime, monospace', fontSize: 12 }}>
-              Image not found: {photo.id}.JPG
-            </div>
+            <div className="lightbox-missing">Image not found: {photo.id}</div>
           ) : (
-            <img
-              src={`${import.meta.env.BASE_URL}images/${photo.id}.JPG`}
-              alt={photo.title}
-              onError={() => setErrored(true)}
-            />
+            <>
+              {/*
+                The thumbnail is already in cache from the grid, so it paints
+                immediately and gives the large version something to resolve
+                out of instead of an empty black box.
+              */}
+              <img
+                className="lightbox-placeholder"
+                src={thumbUrl(photo.id)}
+                alt=""
+                aria-hidden="true"
+                data-hidden={loaded ? 'true' : 'false'}
+              />
+              <img
+                className="lightbox-full"
+                src={displayUrl(photo.id)}
+                alt={photo.title}
+                decoding="async"
+                data-loaded={loaded ? 'true' : 'false'}
+                onLoad={() => setLoaded(true)}
+                onError={() => setErrored(true)}
+              />
+            </>
           )}
         </div>
         <div className="lightbox-caption">

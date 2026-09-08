@@ -160,6 +160,7 @@
   flex: 1;
   position: relative;
   min-width: 0;
+  height: 100%;
 }
 
 /* ── Info Panel ──────────────────────────────────────────── */
@@ -415,7 +416,8 @@
 }
 
 .panel-animate {
-  animation: panel-slide-in 0.3s ease forwards;
+  animation: panel-slide-in calc(var(--nav-duration) * 0.4) ease-out forwards;
+  will-change: opacity, transform;
 }
 
 /* ── Timeline ────────────────────────────────────────────── */
@@ -444,18 +446,23 @@
   left: 0;
   right: 0;
   height: 1px;
+  margin-top: -0.5px;
   background: var(--border-light);
-  transform: translateY(-50%);
 }
 
+/* Grown with scaleX from its left edge — composited, so no layout per frame.
+   left/width come from TimelineBar's measurement of the actual dot centres. */
 .timeline-line-progress {
   position: absolute;
   top: 50%;
   left: 0;
   height: 1px;
+  margin-top: -0.5px;
   background: var(--gold);
-  transform: translateY(-50%);
-  transition: width 0.6s ease;
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform var(--nav-duration) cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
 }
 
 .timeline-stops {
@@ -472,6 +479,11 @@
   align-items: center;
   cursor: pointer;
   gap: 5px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
   transition: opacity 0.2s ease;
 }
 
@@ -488,31 +500,40 @@
   justify-content: center;
 }
 
+/* One fixed 12px box, scaled to size. Transitioning width/height (as before)
+   re-laid out the whole timeline on every frame of every navigation; transform
+   and colour are composited and cost nothing. */
 .timeline-dot {
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  transition: all 0.3s ease;
+  border-style: solid;
+  border-width: 2px;
+  transition:
+    transform var(--nav-duration) cubic-bezier(0.4, 0, 0.2, 1),
+    background-color var(--nav-duration) ease,
+    border-color var(--nav-duration) ease,
+    box-shadow var(--nav-duration) ease;
+  will-change: transform;
 }
 
 .timeline-dot.visited {
-  width: 8px;
-  height: 8px;
-  background: var(--gold-dim);
-  border: 1.5px solid var(--gold);
+  transform: scale(0.667);
+  background-color: var(--gold-dim);
+  border-color: var(--gold);
 }
 
 .timeline-dot.active {
-  width: 12px;
-  height: 12px;
-  background: var(--gold);
-  border: 2px solid var(--gold-light);
+  transform: scale(1);
+  background-color: var(--gold);
+  border-color: var(--gold-light);
   box-shadow: 0 0 8px rgba(201, 150, 58, 0.5);
 }
 
 .timeline-dot.future {
-  width: 6px;
-  height: 6px;
-  background: var(--surface-3);
-  border: 1.5px solid var(--border-light);
+  transform: scale(0.5);
+  background-color: var(--surface-3);
+  border-color: var(--border-light);
 }
 
 .timeline-stop-label {
@@ -521,7 +542,7 @@
   text-transform: uppercase;
   white-space: nowrap;
   font-weight: 500;
-  transition: color 0.3s ease;
+  transition: color var(--nav-duration) ease;
 }
 
 .timeline-stop-label.active {
@@ -590,6 +611,37 @@
   filter: sepia(0.1);
 }
 
+/* The cached thumbnail holds the frame (and its size) while the 1800px version
+   arrives, then fades out from underneath it. */
+.lightbox-placeholder {
+  filter: sepia(0.1) blur(8px);
+  transform: scale(1.02);
+  transition: opacity 0.25s ease;
+}
+
+.lightbox-placeholder[data-hidden="true"] {
+  opacity: 0;
+}
+
+.lightbox-full {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.lightbox-full[data-loaded="true"] {
+  opacity: 1;
+}
+
+.lightbox-missing {
+  padding: 40px 60px;
+  color: var(--text-muted);
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px;
+}
+
 .lightbox-caption {
   padding: 12px 4px 0;
   display: flex;
@@ -632,4 +684,27 @@
 .lightbox-close:hover {
   border-color: var(--gold-dim);
   color: var(--gold);
+}
+
+
+/* ── Reduced motion ──────────────────────────────────────────
+   The map flight is shortened in JS (see lib/timing.js); everything driven by
+   CSS is cut here so a navigation resolves at once rather than part-animating. */
+@media (prefers-reduced-motion: reduce) {
+  .panel-animate {
+    animation: none;
+  }
+
+  .timeline-line-progress,
+  .timeline-dot,
+  .timeline-stop-label,
+  .lightbox-placeholder,
+  .lightbox-full {
+    transition-duration: 0.01ms;
+  }
+
+  .lightbox,
+  .lightbox-inner {
+    animation: none;
+  }
 }

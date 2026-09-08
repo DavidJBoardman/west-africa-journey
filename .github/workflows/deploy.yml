@@ -25,6 +25,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # CARTO basemap key. Set as a repository secret named CARTO_KEY under
+          # Settings -> Secrets and variables -> Actions. Without it CARTO serves
+          # tiles stamped "API KEY REQUIRED".
+          VITE_CARTO_KEY: ${{ secrets.CARTO_KEY }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
